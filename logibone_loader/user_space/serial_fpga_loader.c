@@ -10,7 +10,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
-#include <string.h> 
+#include <string.h>
 #include <math.h>
 
 #define CONFIG_CYCLES 1
@@ -70,7 +70,7 @@ void printHelp(){
 
 void __delay_cycles(unsigned long cycles){
 	while(cycles != 0){
-		cycles -- ;	
+		cycles -- ;
 	}
 }
 
@@ -85,7 +85,7 @@ static inline void i2c_set_pin(unsigned char pin, unsigned char val)
 	unsigned char i2c_buffer[2];
 
 	if (ioctl(i2c_fd, I2C_SLAVE, I2C_IO_EXP_ADDR) < 0) {
-		return ; 
+		return ;
 	}
 
 	i2c_buffer[0] = I2C_IO_EXP_OUT_REG;
@@ -108,7 +108,7 @@ static inline unsigned char i2c_get_pin(unsigned char pin)
 	if (ioctl(i2c_fd, I2C_SLAVE, I2C_IO_EXP_ADDR) < 0) {
 		return ;
 	}
-		
+
 	i2c_buffer = I2C_IO_EXP_IN_REG;
 	write(i2c_fd, &i2c_buffer, 1);
 	read(i2c_fd, &i2c_buffer, 1);
@@ -166,14 +166,14 @@ int init_spi(void){
 		printf("can't get max speed hz \n");
 		return -1 ;
 	}
-	
+
 
 	return 1;
 }
 
 int init_i2c(int nb){
-  char filename[20];   
-  int file ;   
+  char filename[20];
+  int file ;
   snprintf(filename, 19, "/dev/i2c-%d", nb);
   i2c_fd = open(filename, O_RDWR);
   if (i2c_fd < 0) {
@@ -201,7 +201,7 @@ void resetFPGA(){
         i2c_buffer[1] &= ~((1 << SSI_PROG) | (1 << MODE1) | (1 << MODE0));
 
         if (ioctl(i2c_fd, I2C_SLAVE, I2C_IO_EXP_ADDR) < 0){
-                printf("I2C communication error ! \n");     
+                printf("I2C communication error ! \n");
         }
         write(i2c_fd, i2c_buffer, 2); // set SSI_PROG, MODE0, MODE1 as output others as inputs
 
@@ -224,15 +224,15 @@ char serialConfig(unsigned char * buffer, unsigned int length){
 	i2c_buffer[1] &= ~((1 << SSI_PROG) | (1 << MODE1) | (1 << MODE0));
 
 	if (ioctl(i2c_fd, I2C_SLAVE, I2C_IO_EXP_ADDR) < 0){
-		return -1 ;	
+		return -1 ;
 	}
 	write(i2c_fd, i2c_buffer, 2); // set SSI_PROG, MODE0, MODE1 as output others as inputs
-	
+
 	i2c_set_pin(MODE0, 1);
 	i2c_set_pin(MODE1, 1);
 	i2c_set_pin(SSI_PROG, 0);
 
-	
+
 
 	i2c_set_pin(SSI_PROG, 1);
 	__delay_cycles(10 * SSI_DELAY);
@@ -280,7 +280,7 @@ char serialConfig(unsigned char * buffer, unsigned int length){
 	i2c_buffer[0] = I2C_IO_EXP_CONFIG_REG;
 	i2c_buffer[1] = 0xDC;
 	write(i2c_fd, i2c_buffer, 2); // set all unused config pins as input (keeping mode pins and PROG as output)
-	
+
 	return length;
 }
 
@@ -292,7 +292,7 @@ int main(int argc, char ** argv){
 	long start_time, end_time ;
 	double diff_time ;
 	struct timespec cpu_time ;
-	unsigned int size = 0 ;	
+	unsigned int size = 0 ;
 	initGPIOs();
 
 	/*
@@ -310,11 +310,11 @@ int main(int argc, char ** argv){
 	for(i = 1 ; i < argc ; ){
 		if(argv[i][0] == '-'){
 			switch(argv[i][1]){
-				case '\0': 
+				case '\0':
 					i ++ ;
 					break ;
 				case 'r' :
-					resetFPGA(); 
+					resetFPGA();
 					closeGPIOs();
 					close(i2c_fd);
 					return 1 ;
@@ -342,20 +342,20 @@ int main(int argc, char ** argv){
 	fr = fopen (argv[i], "rb");  /* open the file for reading bytes*/
 	if(fr < 0){
 		printf("cannot open file %s \n", argv[1]);
-		return -1 ;	
+		return -1 ;
 	}
 	memset((void *) configBits, (int) 0, (size_t) 1024*1024);
 	size = fread(configBits, 1, 1024*1024, fr);
 	printf("bit file size : %d \n", size);
-	
+
 	//8*5 clock cycle more at the end of config
 	if(serialConfig(configBits, size+5) < 0){
 		printf("config error \n");
-		exit(0);	
+		exit(0);
 	}else{
-		printf("config success ! \n");	
+		printf("config success ! \n");
 	}
-	
+
 	closeGPIOs();
 	fclose(fr);
 	close(spi_fd);
