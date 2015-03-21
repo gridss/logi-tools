@@ -294,8 +294,13 @@ int main(int argc, char ** argv){
 	struct timespec cpu_time ;
 	unsigned int size = 0 ;	
 	initGPIOs();
-	init_i2c(1);
-	
+
+	/*
+	 * Why the fuck would that be 1 if i2c1 is disconnected from
+	 * LOGI Bone's point of view?
+	 */
+	init_i2c(2);
+
 	if (argc == 1) {
 		printHelp();
 		exit(EXIT_FAILURE);
